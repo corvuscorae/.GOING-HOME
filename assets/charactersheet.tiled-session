@@ -1,0 +1,24 @@
+{
+    "activeFile": "packed_tilemap-characters.json",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "packed_tilemap-characters.json": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.imagePath": "C:/Users/shrek 2/Desktop/.120/.ONLY UP/assets",
+    "openFiles": [
+        "packed_tilemap-characters.json"
+    ],
+    "project": "charactersheet.tiled-project",
+    "recentFiles": [
+        "packed_tilemap-characters.json"
+    ],
+    "tileset.lastUsedFormat": "json",
+    "tileset.tileSize": {
+        "height": 18,
+        "width": 18
+    }
+}

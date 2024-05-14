@@ -5,21 +5,36 @@
     },
     "activeFile": "map-level-1.tmx",
     "expandedProjectPaths": [
+        "."
     ],
+    "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "": {
-            "scaleInDock": 1.5
+            "scaleInDock": 1.5,
+            "scaleInEditor": 3
         },
-        "map-level-1.tmx": {
-            "scale": 0.5,
+        "C:/Users/shrek 2/Desktop/.120/StarterPlatformer/assets/platformer-level-1.tmx": {
+            "scale": 1.2930555555555556,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 536,
-                "y": 928
+                "x": 357.29323308270676,
+                "y": 222.72824919441456
+            }
+        },
+        "C:/Users/shrek 2/Desktop/.120/StarterPlatformer/assets/platformer-level-1.tmx#kenny_tilemap_packed": {
+            "scaleInDock": 1
+        },
+        "map-level-1.tmx": {
+            "scale": 1.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 381,
+                "y": 1319.3333333333333
             }
         },
         "map-level-1.tmx#packed_marble": {
-            "scaleInDock": 1.5
+            "scaleInDock": 1.5,
+            "scaleInEditor": 1
         },
         "map-level-1.tmx#packed_rock": {
             "scaleInDock": 1.5
@@ -31,7 +46,8 @@
             "scaleInDock": 1.5
         },
         "map-level-1.tmx#packed_tilemap": {
-            "scaleInDock": 1.5
+            "scaleInDock": 1.5,
+            "scaleInEditor": 3
         },
         "map-level-1.tmx#packed_tilemap_industrial": {
             "scaleInDock": 1.5
@@ -48,8 +64,10 @@
         "map-level-1.tmx"
     ],
     "project": "LEVEL 1.tiled-project",
+    "property.type": "bool",
     "recentFiles": [
-        "map-level-1.tmx"
+        "map-level-1.tmx",
+        "C:/Users/shrek 2/Desktop/.120/StarterPlatformer/assets/platformer-level-1.tmx"
     ],
     "tileset.embedInMap": true,
     "tileset.tileSize": {
