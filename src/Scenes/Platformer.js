@@ -14,6 +14,9 @@ class Platformer extends Phaser.Scene {
         this.debug = true;
         this.underWater = 0;
         this.onWater = 0;
+        this.onJumpThru = false;
+        this.currTile = null;
+        this.wait = 0;
     }
 
     create() {
@@ -58,10 +61,9 @@ class Platformer extends Phaser.Scene {
         // Make it collidable
         this.platformsLayer.setCollisionByProperty({
             collides: true,
-            jumpThru: true
+            jumpThru: true,
+            ladder: true
         });
-
-        console.log(this.platformsLayer);
 
         this.waterLayer.setCollisionByProperty({
             waterBody: true,
@@ -77,8 +79,9 @@ class Platformer extends Phaser.Scene {
 
         // set up player avatar
         my.sprite.player = this.physics.add.sprite(
-            game.config.width/8, 
-            1080*3 - 80, 
+            //game.config.width/8, 
+            game.config.width/2, 
+            1080*3 - 1000, // - 80,
             "platformer_characters", 
             "tile_0000.png").setScale(SCALE);
         my.sprite.player.setCollideWorldBounds(true);
@@ -107,8 +110,27 @@ class Platformer extends Phaser.Scene {
         // set collisions by side accordingly
         // see code starting at line 82 here:
         // https://codepen.io/cedarcantab/pen/qBpVJpO
+
+        // TODO: LADDER MECHANICS
         /////////////////////////////
-        this.physics.add.collider(my.sprite.player, this.platformsLayer);
+        this.physics.add.collider(
+            sprite, 
+            this.platformsLayer,
+            (sprite, tile) => {
+                if(tile.properties.jumpThru){ 
+                    tile.collideDown = false;
+                    tile.collideLeft = false;
+                    tile.collideRight = false;
+                    tile.collideUp = true;
+                    
+                    this.onJumpThru = true;
+                    this.currTile = tile;
+                }
+                else{
+                    this.onJumpThru = false; // WILL NEED TP TURN THIS OFF FOR ALL NON JUMPTHRU TILES!!!!!
+                }
+            }
+            );
         this.physics.add.collider(my.sprite.player, this.bgLayer);
 
         this.cameras.main.startFollow(my.sprite.player, true);
@@ -174,8 +196,21 @@ class Platformer extends Phaser.Scene {
                 break;
         }
 
+        // JUMPTHRU PLATFORM STUFF
+        this.wait--;
+        if(cursors.down.isDown && this.onJumpThru == true){
+            this.lastTile = this.currTile;
+            this.currTile.collideUp = false;
+            this.wait = 30;
+        }
+        if(this.lastTile && this.wait < 0){ 
+            //console.log("meep");
+            this.lastTile.collideUp = true; 
+        }
 
-        ////////
-        //console.log(`this.underWater: ${this.underWater}\nthis.onWater: ${this.onWater}`);
 }
+
+    test(meep){
+        console.log(meep);
+    }
 }
