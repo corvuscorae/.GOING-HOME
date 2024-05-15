@@ -57,8 +57,11 @@ class Platformer extends Phaser.Scene {
 
         // Make it collidable
         this.platformsLayer.setCollisionByProperty({
-            collides: true
+            collides: true,
+            jumpThru: true
         });
+
+        console.log(this.platformsLayer);
 
         this.waterLayer.setCollisionByProperty({
             waterBody: true,
@@ -98,7 +101,13 @@ class Platformer extends Phaser.Scene {
                 //this.water(tile.properties.waterSurface);
             }
         );
-
+        /////////////////////////////
+        // https://newdocs.phaser.io/docs/3.60.0/focus/Phaser.Physics.Arcade.Factory-collider
+        // TODO: add callback to chack for jumpthru platforms (and other platform types) and
+        // set collisions by side accordingly
+        // see code starting at line 82 here:
+        // https://codepen.io/cedarcantab/pen/qBpVJpO
+        /////////////////////////////
         this.physics.add.collider(my.sprite.player, this.platformsLayer);
         this.physics.add.collider(my.sprite.player, this.bgLayer);
 
