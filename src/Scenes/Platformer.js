@@ -14,6 +14,7 @@ class Platformer extends Phaser.Scene {
         this.debug = true;
         this.underWater = 0;
         this.onWater = 0;
+        this.onLadder = false;
         this.onJumpThru = false;
         this.currTile = null;
         this.wait = 0;
@@ -51,12 +52,6 @@ class Platformer extends Phaser.Scene {
             this.tiles_platforms, 
             0, 0);
         this.waterLayer.setScale(2.0);
-
-        this.pickupsLayer = this.map.createLayer(
-            "Pickups", 
-            this.tiles_platforms, 
-            0, 0);
-        this.pickupsLayer.setScale(2.0);
 
         // Make it collidable
         this.platformsLayer.setCollisionByProperty({
@@ -125,12 +120,28 @@ class Platformer extends Phaser.Scene {
                     
                     this.onJumpThru = true;
                     this.currTile = tile;
-                }
-                else{
+                } else{
                     this.onJumpThru = false; // WILL NEED TP TURN THIS OFF FOR ALL NON JUMPTHRU TILES!!!!!
+                }
+
+                if(tile.properties.ladder){
+                    console.log(tile);
+                    tile.collideDown = false;
+                    tile.collideLeft = false;
+                    tile.collideRight = false;
+                    tile.collideUp = false;
                 }
             }
             );
+            this.physics.add.overlap(   // TODO: LADDERS ARE CLIMABLE BUT THEY HAVE WATER PHYSICS. FIX IT
+                sprite, 
+                this.platformsLayer,
+                (sprite, tile) => {
+                    if(tile.properties.ladder){ 
+                        this.underWater = -2;
+                    }
+                }
+                );
         this.physics.add.collider(my.sprite.player, this.bgLayer);
 
         this.cameras.main.startFollow(my.sprite.player, true);
@@ -144,10 +155,10 @@ class Platformer extends Phaser.Scene {
         //console.log(3 * this.onWater);
         this.acceleration = (
             this.ACCELERATION - 
-            (this.ACCELERATION * (this.underWater/3)));
+            (this.ACCELERATION * (Math.abs(this.underWater) / 3)));
         this.physics.world.gravity.y = (
             this.GRAVITY - 
-            (this.GRAVITY * (this.underWater / 2)));
+            (this.GRAVITY * (Math.abs(this.underWater) / 2)));
 
         if(cursors.left.isDown) {
             my.sprite.player.body.setAccelerationX(-this.acceleration);
@@ -174,16 +185,6 @@ class Platformer extends Phaser.Scene {
             my.sprite.player.anims.play('jump');
         }
         switch(this.underWater){
-            case 0:     // on land
-                if( my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
-                        my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);     
-                }    
-                break; 
-            case 1:     // on surface of water
-                if( my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
-                        my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY / 2);     
-                }
-                break;
             case 2:     // underwater
                 if(cursors.up.isDown){
                     my.sprite.player.body.setAccelerationY(-this.acceleration);
@@ -191,6 +192,27 @@ class Platformer extends Phaser.Scene {
                     my.sprite.player.body.setAccelerationY(this.acceleration);
                 } else {
                     my.sprite.player.body.setVelocityY(this.GRAVITY / 200);
+                    my.sprite.player.body.setDragY(this.DRAG / 100);
+                }
+                break;
+            case 1:     // on surface of water
+                if( my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
+                        my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY / 2);     
+                }
+                break;
+            case 0:     // on land
+                if( my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
+                        my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);     
+                }    
+                break;
+            case -2:    // ladder
+                if(cursors.up.isDown){
+                    my.sprite.player.body.setAccelerationY(-this.acceleration * 4);
+                } else if(cursors.down.isDown){
+                    my.sprite.player.body.setAccelerationY(this.acceleration * 4);
+                } else {
+                    my.sprite.player.body.setAccelerationY(0);
+                    my.sprite.player.body.setVelocityY(0);
                     my.sprite.player.body.setDragY(this.DRAG / 100);
                 }
                 break;
@@ -207,6 +229,8 @@ class Platformer extends Phaser.Scene {
             //console.log("meep");
             this.lastTile.collideUp = true; 
         }
+
+        console.log(this.underWater);
 
 }
 
