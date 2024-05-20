@@ -21,12 +21,9 @@ class Platformer extends Phaser.Scene {
         this.wait = 0;
 
         this.keyCount = 0;
+        this.heartCount = 0;
         this.shroombustCount = 0;
-    }
-
-    create() {
-        this.physics.world.drawDebug = false;
-
+        
         // set up Phaser-provided cursor key input
         cursors = this.input.keyboard.createCursorKeys();
 
@@ -40,11 +37,31 @@ class Platformer extends Phaser.Scene {
         this.tiles_industry     = this.map.addTilesetImage("packed_industrial", "industry");
         this.tiles_background   = this.map.addTilesetImage("tilemap-backgrounds", "backgrounds");
 
+        this.tileSets = [this.tiles_marble, this.tiles_stone, 
+            this.tiles_platforms, this.tiles_industry, this.tiles_background];
+    }
+
+    //addLayer(layerName, tilesets){
+    //    let newLayer = this.map.createLayer(
+    //        layerName, 
+    //        tilesets, 
+    //        0, 0);
+    //    newLayer.setScale(this.SCALE); 
+//
+    //    return newLayer;
+    //}
+
+    create() {
+        this.physics.world.drawDebug = false;
+
+        
+
         /* LAYERS */
         // background
-        this.bgLayer = this.map.createLayer(
+        this.bgLayer =// this.addLayer("BG", this.tileSets);
+        this.map.createLayer(
             "BG", 
-            [this.tiles_platforms, this.tiles_marble, this.tiles_stone, this.tiles_background], 
+            this.tileSets, 
             0, 0);
         this.bgLayer.setScale(this.SCALE);  
 
@@ -113,6 +130,35 @@ class Platformer extends Phaser.Scene {
         }
         this.physics.world.enable(this.shroombuster, Phaser.Physics.Arcade.STATIC_BODY); 
 
+        // heart
+        this.hearts = this.map.createFromObjects("Pickups + Powerups", {
+            name: "heart",
+            key: "tilemap_sheet",
+            frame: 44
+        });
+        for(let i in this.hearts){ // rescale + shift position
+            this.hearts[i].x *= this.SCALE; 
+            this.hearts[i].y *= this.SCALE; 
+            this.hearts[i].setScale(this.SCALE); 
+
+            this.hearts[i].startScale = this.hearts[i]._scaleX;
+        }
+        this.physics.world.enable(this.hearts, Phaser.Physics.Arcade.STATIC_BODY); 
+
+        // empty hearts
+        this.emptyHearts = this.map.createFromObjects("Pickups + Powerups", {
+            name: "empty",
+            key: "tilemap_sheet",
+            frame: 46
+        });
+        for(let i in this.hearts){ // rescale + shift position
+            this.emptyHearts[i].x *= this.SCALE; 
+            this.emptyHearts[i].y *= this.SCALE; 
+            this.emptyHearts[i].setScale(this.SCALE); 
+            this.emptyHearts[i].isEmpty = true;
+        }
+        this.physics.world.enable(this.emptyHearts, Phaser.Physics.Arcade.STATIC_BODY); 
+
         /* VFX */
         // OBJECT VFX
         my.vfx.pickup = this.add.particles(0, 0, "kenny-particles", {
@@ -151,6 +197,17 @@ class Platformer extends Phaser.Scene {
             lifespan: 500
         });
         my.vfx.run.stop();
+
+        // superjump
+        my.vfx.superjump = this.add.particles(100, 100, "kenny-particles", {
+            frame: ['spark_05.png', 'spark_06.png'],
+            scale: {start: 0.1, end: 0.05},
+            alpha: {start: 1, end: 0},
+            speedY: -100,
+            lifespan: 50,
+            duration: 300
+        });
+        my.vfx.superjump.stop();
         ///////////////////////////////////////////////////
 
         ///////////////////////////////////////////////////
@@ -168,7 +225,6 @@ class Platformer extends Phaser.Scene {
             false);
         ///////////////////////////////////////////////////
 
-
         /* COLLISION */
         let sprite = my.sprite.player;
 
@@ -182,7 +238,8 @@ class Platformer extends Phaser.Scene {
             collides: true,
             jumpThru: true,
             breakable: true,
-            ladder: true
+            ladder: true,
+            emptyHeart: true
         });
 
         // water
@@ -227,8 +284,8 @@ class Platformer extends Phaser.Scene {
                 } else{
                     this.onJumpThru = false;
                     if(tile.properties.ladder){ tile.setCollision(false); }
+                    if(tile.properties.emptyHeart){ tile.setCollision(false); }
                     if(tile.properties.breakable){
-                        //console.log("wahoo");
                         if(this.shroombustCount > 0){
                             this.shroombustCount--;
                             //tile.destroy(); 
@@ -243,17 +300,18 @@ class Platformer extends Phaser.Scene {
             }
             );
         this.physics.add.overlap(
-                sprite, 
-                this.platformsLayer,
-                (sprite, tile) => {
-                    if(tile.properties.ladder){ 
-                        this.underWater = -2;
-                    }
+            sprite, 
+            this.platformsLayer,
+            (sprite, tile) => {
+                if(tile.properties.ladder){ 
+                    this.underWater = -2;
                 }
-                );
+            }
+            );
+
         this.physics.add.collider(my.sprite.player, this.bgLayer);
         
-        /* OBJECTS */       
+        /* OBJECTS COLLISION */       
         this.physics.world.enable(this.keys, Phaser.Physics.Arcade.STATIC_BODY);
 
         // collision detection with keys
@@ -293,6 +351,11 @@ class Platformer extends Phaser.Scene {
             my.sprite.player, 
             this.superjump, 
             (obj1, obj2) => {
+                my.vfx.superjump.startFollow(
+                    my.sprite.player, 
+                    my.sprite.player.displayWidth - 135, 
+                    my.sprite.player.displayHeight - 100, false);
+                my.vfx.superjump.start();
                 obj2.anims.play('superJump');
                 // make player jump high
                 my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY*2);
@@ -309,6 +372,32 @@ class Platformer extends Phaser.Scene {
                 obj2.destroy(); 
             }); 
 
+        this.heartsGroup = this.add.group(this.hearts);
+        // Handle collision detection with hearts
+        this.physics.add.overlap(
+            my.sprite.player, 
+            this.hearts, 
+            (obj1, obj2) => {
+                this.heartCount++;
+                obj2.destroy(); 
+            }); 
+
+        this.emptyHeartsGroup = this.add.group(this.emptyHearts);
+        // Handle collision detection with empty hearts
+        this.physics.add.overlap(
+            my.sprite.player, 
+            this.emptyHearts, 
+            (obj1, obj2) => {
+                if(this.heartCount > 0){
+                    if(obj2.isEmpty == true){
+                        obj2.anims.play('putHeart');
+                        this.heartCount--;
+                        obj2.isEmpty = false;
+                    }
+                     
+                }
+            }); 
+
         /* CAMERA */
         this.cameras.main.startFollow(my.sprite.player, true);        
         this.cameras.main.setBounds(0,0,1080,1080*3);
@@ -319,7 +408,7 @@ class Platformer extends Phaser.Scene {
     }
 
     update() {
-        console.log(`keys: ${this.keyCount}\nshroombies: ${this.shroombustCount}`);
+        //console.log(`keys: ${this.keyCount}\nshroombies: ${this.shroombustCount}`);
         //this.acceleration = this.underWater ? this.ACCELERATION/3 : this.ACCELERATION;
         //this.physics.world.gravity.y = this.underWater ? 0 : this.GRAVITY;
 
@@ -428,5 +517,14 @@ class Platformer extends Phaser.Scene {
         if(this.lastTile && this.wait < 0){ 
             this.lastTile.collideUp = true; 
         }
+
+        // heartbeat
+        for(let i in this.hearts){
+            if(this.hearts[i]._scaleX < this.hearts[i].startScale + 0.7){
+                this.hearts[i]._scaleX += 0.015;
+                this.hearts[i]._scaleY += 0.015;
+            } else{ this.hearts[i].setScale(this.hearts[i].startScale); }
+        }
+
     }
 }

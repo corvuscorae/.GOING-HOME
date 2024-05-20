@@ -57,6 +57,30 @@ class Load extends Phaser.Scene {
             ],
         });
 
+        // super jump powerup
+        this.anims.create({
+            key: 'superJump',
+            defaultTextureKey: "tilemap_sheet",
+            frames: [ 
+                {frame: 107}, 
+                {frame: 108},
+                {frame: 107} ],
+            frameRate: 10,
+            repeat: 0
+        });
+
+        // super jump powerup
+        this.anims.create({
+            key: 'putHeart',
+            defaultTextureKey: "tilemap_sheet",
+            frames: [ 
+                {frame: 46}, 
+                {frame: 44} ],
+            frameRate: 15,
+            repeat: 0
+        });
+
+
          // ...and pass to the next Scene
          
          this.scene.start("platformerScene");
