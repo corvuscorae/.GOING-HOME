@@ -4,6 +4,16 @@ class Load extends Phaser.Scene {
     }
 
     preload() {
+        // animated tiles plugin
+        // https://github.com/jonit-dev/phaser-animated-tiles
+        this.load.scenePlugin('AnimatedTiles', './lib/AnimatedTiles.js', 'animatedTiles', 'animatedTiles')
+        //this.load.scenePlugin({
+        //    key: 'AnimatedTiles', 
+        //    url: '/lib/AnimatedTiles.js', 
+        //    sceneKey: 'animatedTiles' 
+        //    //'animatedTiles'
+        //});
+
         this.load.setPath("./assets/");
 
         // Load characters spritesheet//*****************************/
@@ -31,8 +41,8 @@ class Load extends Phaser.Scene {
             key: 'walk',
             frames: this.anims.generateFrameNames('platformer_characters', {
                 prefix: "tile_",
-                start: 0,
-                end: 1,
+                start: 4,
+                end: 5,
                 suffix: ".png",
                 zeroPad: 4
             }),
@@ -44,7 +54,7 @@ class Load extends Phaser.Scene {
             key: 'idle',
             defaultTextureKey: "platformer_characters",
             frames: [
-                { frame: "tile_0000.png" }
+                { frame: "tile_0004.png" }
             ],
             repeat: -1
         });
@@ -53,7 +63,7 @@ class Load extends Phaser.Scene {
             key: 'jump',
             defaultTextureKey: "platformer_characters",
             frames: [
-                { frame: "tile_0001.png" }
+                { frame: "tile_0005.png" }
             ],
         });
 
@@ -69,7 +79,18 @@ class Load extends Phaser.Scene {
             repeat: 0
         });
 
-        // super jump powerup
+        // activate checkpoint
+        this.anims.create({
+            key: 'activateCheckpoint',
+            defaultTextureKey: "tilemap_sheet",
+            frames: [ 
+                {frame: 10}, 
+                {frame: 30} ],
+            frameRate: 15,
+            repeat: 0
+        });
+
+        // fill empty heart
         this.anims.create({
             key: 'putHeart',
             defaultTextureKey: "tilemap_sheet",
@@ -80,6 +101,27 @@ class Load extends Phaser.Scene {
             repeat: 0
         });
 
+        // key sway
+        this.anims.create({
+            key: 'keySway',
+            defaultTextureKey: "tilemap_sheet",
+            frames: [ 
+                {frame: 7}, 
+                {frame: 27} ],
+            frameRate: 3,
+            repeat: -1
+        });
+
+        // waves
+        this.anims.create({
+            key: 'waves',
+            defaultTextureKey: "tilemap_sheet",
+            frames: [ 
+                {frame: 33}, 
+                {frame: 53} ],
+            frameRate: 5,
+            repeat: -1
+        });
 
          // ...and pass to the next Scene
          
