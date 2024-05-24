@@ -40,9 +40,9 @@ class Load extends Phaser.Scene {
         this.load.audio("sfx_checkpointUnlock", "pepSound2.ogg");          
         this.load.audio("sfx_checkpointWarp", "pepSound1.ogg");          
         this.load.audio("sfx_getHeart", "zapThreeToneUp.ogg");          
-        this.load.audio("sfx_putHeart1", "computerNoise_000.ogg");          
-        this.load.audio("sfx_putHeart2", "computerNoise_001.ogg");          
-        this.load.audio("sfx_putHeart3", "computerNoise_002.ogg");          
+        this.load.audio("sfx_putHeart1", "spaceEngine_000.ogg");          
+        this.load.audio("sfx_putHeart2", "spaceEngine_002.ogg");          
+        this.load.audio("sfx_putHeart3", "spaceEngine_003.ogg");          
 
         this.load.bitmapFont("pixel_font", "pixel.png", "pixel.xml");
     }

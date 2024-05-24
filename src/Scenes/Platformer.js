@@ -168,19 +168,19 @@ class Platformer extends Phaser.Scene {
             });
         this.sfx_putHeart = [ // array of sounds
             this.sound.add("sfx_putHeart1", {
-                volume: this.volume_SFX/8,
-                rate: 0.4,
-                detune: -600,
+                volume: this.volume_SFX/1.5,
+                rate: 1,
+                detune: 0,
                 loop: true
             }),        
             this.sound.add("sfx_putHeart2", {
-                volume: this.volume_SFX/8,
-                rate: 0.8,
-                detune: -500,
+                volume: this.volume_SFX/1.5,
+                rate: 1,
+                detune: 0,
                 loop: true
             }),      
-            this.sound.add("sfx_putHeart2", {
-                volume: this.volume_SFX/8,
+            this.sound.add("sfx_putHeart3", {
+                volume: this.volume_SFX/3,
                 rate: 1,
                 detune: 0,
                 loop: true
@@ -267,29 +267,33 @@ class Platformer extends Phaser.Scene {
     }
     /* UI */
     initUI(){
-        this.keysTxt = this.add.bitmapText(10, 50, "pixel_font", `KEYS:${this.keyCount}`, 30);
-        this.keysTxt.setScrollFactor(0);
+        // INVENTORY
+        this.rect_topLeft = this.add.rectangle(0, 0, game.config.width - 120, 200, 0x1c1211, 0.5)
+            .setOrigin(0.5).setScrollFactor(0);
+        this.keysTxt = this.add.bitmapText(10, 50, "pixel_font", 
+            `KEYS:${this.keyCount}`, 30).setScrollFactor(0);
 
-        this.shroombTxt = this.add.bitmapText(10, 10, "pixel_font", `SHROOMBUSTERS:${this.shroombustCount}`, 30);
-        this.shroombTxt.setScrollFactor(0);
+        this.shroombTxt = this.add.bitmapText(10, 10, "pixel_font", 
+            `SHROOMBUSTERS:${this.shroombustCount}`, 30).setScrollFactor(0);
 
-        this.controlsTxt = this.add.bitmapText(10, 1050, "pixel_font", `Arrows to move`, 20);
-        this.controlsTxt.setScrollFactor(0);
+        // CONTROLS
+        this.rect_bottom = this.add.rectangle(0, game.config.height, game.config.width*2, 60, 0x1c1211, 0.5)
+            .setOrigin(0.5).setScrollFactor(0);
+        this.controlsTxt = this.add.bitmapText(10, 1050, "pixel_font", 
+            `Arrows to move`, 20).setScrollFactor(0);
 
-        this.teleportTxt = this.add.bitmapText(500, 1050, "pixel_font", `Space to return to checkpoint`, 20);
-        this.teleportTxt.setScrollFactor(0);
-        this.teleportTxt.setVisible(false);
+        this.teleportTxt = this.add.bitmapText(500, 1050, "pixel_font", 
+            `Space to return to checkpoint`, 20).setScrollFactor(0).setVisible(false);
 
-        this.rect = this.add.rectangle(540, 480, 1040, 300, 0x1c1211, 0.5);
-        this.rect.setVisible(false);
+        // WIN stuff
+        this.rect_win = this.add.rectangle(540, 480, 1040, 300, 0x1c1211, 0.5)
+            .setOrigin(0.5).setScrollFactor(0).setVisible(false);
         
-        this.winTxt = this.add.bitmapText(540, 540, "pixel_font", `WIN!`, 200).setOrigin(0.5);;
-        this.winTxt.setScrollFactor(0);
-        this.winTxt.setVisible(false);
+        this.winTxt = this.add.bitmapText(540, 540, "pixel_font", 
+            `WIN!`, 200).setOrigin(0.5).setScrollFactor(0).setVisible(false);
 
-        this.playagainTxt = this.add.bitmapText(540, 540+60, "pixel_font", `press enter to play again`, 40).setOrigin(0.5);;
-        this.playagainTxt.setScrollFactor(0);
-        this.playagainTxt.setVisible(false);
+        this.playagainTxt = this.add.bitmapText(540, 540+60, "pixel_font", 
+            `press enter to play again`, 40).setOrigin(0.5).setScrollFactor(0).setVisible(false);
     }
     // CREATE TILE LAYERS //
     addLayer(layerName, tilesets, scroll){
@@ -336,13 +340,10 @@ class Platformer extends Phaser.Scene {
                     this.waterLayer,
                     (sprite, tile) => {
                         // water type = waterBody
-                        if(tile.properties.waterBody == true){ 
-                            this.tileType = 2;
-                        } else {
+                        if(tile.properties.waterBody == true){ this.tileType = 2; } 
+                        else { 
                             // water type = waterFall
-                            if(tile.properties.waterFall == true){ 
-                                this.tileType = 1; 
-                            } 
+                            if(tile.properties.waterFall == true){ this.tileType = 1; } 
                             // not on water
                             else { this.tileType = 0; }
                         }
@@ -356,33 +357,35 @@ class Platformer extends Phaser.Scene {
                     ladder: false, emptyHeart: true
                 });
 
-                // handle different tile types
+                // handle tiles by property
                 this.physics.add.collider(
                     my.sprite.player, 
                     this.platformsLayer,
                     (sprite, tile) => {
-                        // tile type = jumpThru
-                        if(tile.properties.jumpThru){ 
+                        if(tile.properties.jumpThru){ // jumpThru tiles
+                            // turn off all collisions except for up
                             tile.collideDown = false;
                             tile.collideLeft = false;
                             tile.collideRight = false;
-                            // set up for pressing down to allow player to fall thru
+                            
+                            // helper variables for moving down through these platforms (see yMovement())
                             this.onJumpThru = true;
                             this.currTile = tile;
+                            
+                            // update tileType variable
                             if(tile.properties.cloud){ this.tileType = 0.5; }
                             else{ this.tileType = 0; }
                         } else{
                             this.onJumpThru = false;
-                            // tile type = breakable --> handle shroombust 
-                            if(tile.properties.breakable){
+                            if(tile.properties.breakable){ // breakable tiles --> handle shroombust 
                                 // if player has shroombust powerup, "break" block on collision
                                 if(this.shroombustCount > 0){
+                                    // SFX + VFX
                                     this.sfx_breakShroom.play();
-
                                     my.vfx.shroomb.x = tile.x*36 + 20;
                                     my.vfx.shroomb.y = tile.y*36 + 10;
                                     my.vfx.shroomb.start();
-                                    
+                                    // UPDATE TILE/VARIABLES
                                     this.shroombustCount--;
                                     tile.setCollision(false);
                                     tile.setVisible(false);
@@ -407,26 +410,13 @@ class Platformer extends Phaser.Scene {
                     collides: true, UFO: true
                 });
 
-                // handle different tile types
                 this.physics.add.collider(
                     my.sprite.player, 
                     this.UFOlayer,
                     (sprite, tile) => {
-                        // tile type = ladder --> turn off collision (will add overlap later)
-                        sprite.x += 2*this.UFOright;
-                        if(tile.properties.ladder){ tile.setCollision(false); }                        
+                        sprite.x += 2*this.UFOright; // move sprite with UFO layer
                     }
                 );
-                // add overlap for ladder tiles
-                //this.physics.add.overlap(
-                //    sprite, 
-                //    this.UFOlayer,
-                //    (sprite, tile) => {
-                //        if(tile.properties.ladder){ 
-                //            sprite.x += 2*this.UFOright;
-                //            this.tileType = -2; 
-                //        }
-                //    });
             break;
         }
        return;
@@ -437,15 +427,17 @@ class Platformer extends Phaser.Scene {
         ///-- KEYS -------------------------------------///
             case "keys":
                 this.physics.add.overlap(
-                sprite, 
-                this.keyGroup, 
-                (obj1, obj2) => {
-                    this.sfx_collectKey.play();
-                    my.vfx.pickup.x = obj2.x;
-                    my.vfx.pickup.y = obj2.y;
-                    my.vfx.pickup.start();
-                    this.keyCount++;
-                    obj2.destroy(); 
+                    sprite, 
+                    this.keyGroup, 
+                    (obj1, obj2) => {
+                        // SFX + VFX
+                        this.sfx_collectKey.play();
+                        my.vfx.pickup.x = obj2.x;
+                        my.vfx.pickup.y = obj2.y;
+                        my.vfx.pickup.start();
+                        // UPDATE VARIABLES/OBJECT STATE
+                        this.keyCount++;
+                        obj2.destroy(); 
                 });    
             break;
 
@@ -455,15 +447,18 @@ class Platformer extends Phaser.Scene {
                     sprite, 
                     this.chestGroup, 
                     (obj1, obj2) => {
+                        // only can interact with chest if has key
                         if(this.keyCount > 0){
+                            // SFX + VFX
                             this.sfx_openChest.play();
                             my.vfx.openChest.x = obj2.x;
                             my.vfx.openChest.y = obj2.y;
                             my.vfx.openChest.start();
+                            // UPDATE VARIABLES/OBJECT STATE
                             this.keyCount--;
                             obj2.destroy(); 
                         }
-                    }); 
+                }); 
             break;
 
         ///-- SUPERJUMPS -------------------------------///
@@ -472,14 +467,14 @@ class Platformer extends Phaser.Scene {
                     sprite, 
                     this.superjump, 
                     (obj1, obj2) => {
+                        // SFX + VFX
                         this.sfx_superjump.play();
-                        my.vfx.superjump.startFollow(
-                            my.sprite.player, 105, 150, false);
+                        my.vfx.superjump.startFollow(my.sprite.player, 105, 150, false);
                         my.vfx.superjump.start();
+                        // ANIMS
                         obj2.anims.play('superJump');
                         // make player jump high
                         my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY*2);
-
                 }); 
             break;
 
@@ -489,10 +484,12 @@ class Platformer extends Phaser.Scene {
                     sprite, 
                     this.shroombuster, 
                     (obj1, obj2) => {
+                        // SFX + VFX
                         this.sfx_collectDiamond.play();
                         my.vfx.pickup.x = obj2.x;
                         my.vfx.pickup.y = obj2.y;
                         my.vfx.pickup.start();
+                        // UPDATE VARIABLES/OBJECT STATE
                         this.shroombustCount++;
                         obj2.destroy(); 
                     });             
@@ -504,10 +501,12 @@ class Platformer extends Phaser.Scene {
                     sprite, 
                     this.hearts, 
                     (obj1, obj2) => {
+                        // SFX + VFX
                         this.sfx_getHeart.play();
                         my.vfx.getHeart.x = obj2.x;
                         my.vfx.getHeart.y = obj2.y;
                         my.vfx.getHeart.start();
+                        // UPDATE VARIABLES/OBJECT STATE
                         this.heartCount++;
                         obj2.destroy(); 
                     }); 
@@ -515,9 +514,10 @@ class Platformer extends Phaser.Scene {
 
         ///-- EMPTY HEARTS -----------------------------///
             case "emptyHearts":
+            // see emptyHeartsCollider() below
             // NOTE: CANT FIGURE THIS OUT, USING CUSTOM FCN INSTEAD OF BUILT IN >:(
-                // buggy, doesnt read collision when emptyhearts are moving
-                // my custome fcn does tho so wahoo (TODO: FIX IF TIME)
+                // collider and overlap acts buggy, doesnt read collision when emptyhearts are moving
+                // the custom collision fcn works fine tho so wahoo
             break;
 
         ///-- CHECKPOINTS ------------------------------///
@@ -526,11 +526,15 @@ class Platformer extends Phaser.Scene {
                 sprite, 
                 this.checkpoints, 
                 (obj1, obj2) => {
+                    // isActive tracks whether the checkpoint has been activated
+                    // only do collision callback stuff if the checkpoint hasnt been activated yet
                     if(obj2.isActive == false){
+                        // SFX + VFX
                         this.sfx_checkpointUnlock.play();
+                        obj2.anims.play('activateCheckpoint');
+                        // UPDATE VARIABLES/OBJECT STATE
                         this.currCheckpoint.x = obj2.x;
                         this.currCheckpoint.y = obj2.y;
-                        obj2.anims.play('activateCheckpoint');
                         obj2.isActive = true;
                     }
                 }); 
@@ -538,21 +542,30 @@ class Platformer extends Phaser.Scene {
         }
         return;
     }
-    // custom collision fcn for empty heartas. phaser arcade physcos hates me 
-    emptyHeartsCollider(player){ // doing custon copllision for this one bc i cant get it to work with the built in >:(
+    // custom collision fcn for empty hearts
+    emptyHeartsCollider(player){
         for(let i in this.emptyHearts){ 
+            // only check for collision at empty hearts
             if(this.emptyHearts[i].isEmpty == true){ 
                 if (Math.abs(this.emptyHearts[i].x - player.x) > 
                     (this.emptyHearts[i].displayWidth/2 + player.displayWidth/2)) { continue; }
                 if (Math.abs(this.emptyHearts[i].y - player.y) > 
                     (this.emptyHearts[i].displayHeight/2 + player.displayHeight/2)) { continue; }
                 
+                // we only reach here if there is a collision. yippie
+
+                // if a heart has already been filled, then stop previous sfx
                 if(this.heartsFilled > 0){ this.sfx_putHeart[this.heartsFilled-1].stop(); }
-                this.sfx_putHeart[this.heartsFilled].play();
-                this.heartsFilled++;
+                // play sfx_putHeart member corresponding to numbers of hearts placed atp
+                if(!this.sfx_putHeart[this.heartsFilled].isPlaying){ this.sfx_putHeart[this.heartsFilled].play(); }
                 this.emptyHearts[i].anims.play('putHeart');
-                this.heartCount--;
+
+                // set empty flag to false
                 this.emptyHearts[i].isEmpty = false;
+
+                this.heartCount--;      // remove heart from player "inventory"
+                this.heartsFilled++;    // add heart to heartsFilled score
+
             }
         }
     }
@@ -628,6 +641,9 @@ class Platformer extends Phaser.Scene {
         // UFO tile layer, behind player
         this.UFOlayer = this.addLayer("UFO", this.tileSets, 1);
 
+        /* UI LAYER */
+        this.initUI();
+
         // uses the animated tiles plugin to. animate. tiles
         this.animatedTiles.init(this.map)
 
@@ -673,54 +689,46 @@ class Platformer extends Phaser.Scene {
                 sprite.y = this.currCheckpoint.y;
             }
         }, this);
-
-        /* UI LAYER */
-        this.initUI();
     }
 ////////////////* UPDATE() HELPER FCNS */////////////////
     xMovement(active){
         if(active){
             if(cursors.left.isDown) {
-                if(Math.floor(this.tileType) == 0 && !this.sfx_walk.isPlaying && my.sprite.player.body.blocked.down){ 
-                    this.sfx_walk.setDetune(-50);
-                    this.sfx_walk.play();
-                } else if(this.tileType > 0 && !this.sfx_swim.isPlaying){ // water
-                    this.sfx_swim.setDetune(-100);
-                    this.sfx_swim.play();
-                }
+                // ACCELERATION
                 my.sprite.player.body.setAccelerationX(-this.acceleration);
-                
+
+                // SFX
+                if(Math.floor(this.tileType) == 0 && !this.sfx_walk.isPlaying && my.sprite.player.body.blocked.down){ 
+                    this.sfx_walk.setDetune(-50).play();
+                } else if(Math.floor(this.tileType) > 0 && !this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(-100).play(); }
+                // ANIMS
                 my.sprite.player.resetFlip();
                 my.sprite.player.anims.play('walk', true);
-
+                // VFX
                 my.vfx.run.startFollow(my.sprite.player, 110, 120, false);
-                if (my.sprite.player.body.blocked.down) {
-                    my.vfx.run.start();
-                }
+                if (my.sprite.player.body.blocked.down) { my.vfx.run.start(); }
             } else if(cursors.right.isDown) {
-                if(Math.floor(this.tileType) == 0 && !this.sfx_walk.isPlaying && my.sprite.player.body.blocked.down){ 
-                    this.sfx_walk.setDetune(150);
-                    this.sfx_walk.play();
-                } else if(Math.floor(this.tileType) > 0 && !this.sfx_swim.isPlaying){ // water
-                    this.sfx_swim.setDetune(100);
-                    this.sfx_swim.play();
-                }
+                // ACCELERATION
                 my.sprite.player.body.setAccelerationX(this.acceleration);
 
+                // SFX
+                if(Math.floor(this.tileType) == 0 && !this.sfx_walk.isPlaying && my.sprite.player.body.blocked.down){ 
+                    this.sfx_walk.setDetune(150).play();
+                } else if(Math.floor(this.tileType) > 0 && !this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(100).play(); }
+                // ANIMS
                 my.sprite.player.setFlip(true, false);
                 my.sprite.player.anims.play('walk', true);
-
+                // VFX
                 my.vfx.run.startFollow(my.sprite.player, 90, 120, false);
-                if (my.sprite.player.body.blocked.down) {
-                    my.vfx.run.start();
-                }
+                if (my.sprite.player.body.blocked.down) { my.vfx.run.start(); }
             } else {
-                this.sfx_walk.stop();
+                // ACCELRATION, DRAG
                 my.sprite.player.body.setAccelerationX(0);
                 my.sprite.player.body.setDragX(this.drag);
-
+                
+                // STOP THE JUICE
+                this.sfx_walk.stop();
                 my.sprite.player.anims.play('idle');
-
                 my.vfx.run.stop();
             }
         }
@@ -728,13 +736,88 @@ class Platformer extends Phaser.Scene {
 
     yMovement(active){
         if(active){ 
-            // player jump
-            // note that we need body.blocked rather than body.touching b/c the former applies to tilemap tiles and the latter to the "ground"
+            /* MOVEMENT */
+            switch(Math.floor(this.tileType)){
+                case 2:     /* UNDWERWATER */     
+                    my.vfx.run.stop(); // turn off running VFX
+                    if(cursors.up.isDown){
+                        // VELOCITY
+                        my.sprite.player.body.setVelocityY(-this.acceleration/1.5);
+                        // SFX + VFX
+                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(200).play(); }
+                        my.vfx.swim.startFollow(my.sprite.player, 100, 120, false).start();
+
+                    } else if(cursors.down.isDown){
+                        // VELOCITY
+                        my.sprite.player.body.setVelocityY(this.acceleration/1.5);
+                        // SFX + VFX
+                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(-200).play(); }
+                        my.vfx.run.startFollow(my.sprite.player, 100, 120, false).start();
+                    } else {
+                        my.sprite.player.body.setVelocityY(this.GRAVITY / 200); // sink when idle
+                        my.vfx.swim.stop(); // stop VFX
+                    }
+                    break;
+                case 1:     /* WATERFALL */
+                    my.vfx.run.stop(); // turn off running VFX
+                    if(cursors.up.isDown){
+                        // VELOCITY
+                        my.sprite.player.body.setVelocityY(-this.acceleration/6);
+                        // SFX + VFX
+                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(200).play(); }
+                        my.vfx.run.startFollow(my.sprite.player, 100, 120, false).start();
+
+                    } else if(cursors.down.isDown){
+                        // VELOCITY
+                        my.sprite.player.body.setVelocityY(this.acceleration/6);
+                        // SFX + VFX
+                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(-200).play(); }
+                        my.vfx.run.startFollow(my.sprite.player, 100, 120, false).start();
+                    } else {
+                        my.sprite.player.body.setVelocityY(this.GRAVITY / 3); // fall when idle
+                        my.vfx.swim.stop(); // stop VFX
+                    }
+                    break;
+                case 0:     /* LAND/CLOUDS */
+                    my.vfx.swim.stop(); // turn off swimming VFX
+                    if( my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
+                            my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);     
+                            this.sfx_jump.play();
+                        }    
+                    break;
+                case -2:    /* LADDER */ 
+                    my.vfx.run.stop();  // turn off running VFX
+                    my.vfx.swim.stop(); // turn off swimming VFX
+                    if(cursors.up.isDown){
+                        my.sprite.player.body.setVelocityY(-this.ACCELERATION/2);
+                    } else if(cursors.down.isDown){
+                        my.sprite.player.body.setVelocityY(this.ACCELERATION/2);
+                    } else {
+                        my.sprite.player.body.setAccelerationY(0); // no movement when idle
+                        my.sprite.player.body.setVelocityY(0);
+                    }
+                    break;
+                }
+
+            /* JUMPTHRU PLATFORM STUFF */
+            this.wait--;
+            if(cursors.down.isDown && this.onJumpThru == true){
+                this.lastTile = this.currTile;
+                this.currTile.collideUp = false;
+                this.wait = 30;
+            }
+            if(this.lastTile && this.wait < 0){ 
+                this.lastTile.collideUp = true; 
+            }
+
+            /* other SFX/VFX + ANIMS */
             if(!my.sprite.player.body.blocked.down) { my.sprite.player.anims.play('jump'); }
+
+            // SFX
             if(my.sprite.player.body.velocity.y > 0){ this.falling = true; }
             if(this.falling == true){
-                if(my.sprite.player.body.blocked.down){
-                    this.sfx_land.play();
+                if(my.sprite.player.body.blocked.down && this.tileType != -2){
+                    if(!this.sfx_land.isPlaying){ this.sfx_land.play(); }
                     this.falling = false;
                 }
             }
@@ -753,95 +836,13 @@ class Platformer extends Phaser.Scene {
                 my.sprite.player.scaleX = this.SCALE - 0.5; 
                 my.sprite.player.scaleY = this.SCALE - 0.5; 
             }
-
-            switch(Math.floor(this.tileType)){
-                /* UNDWERWATER */
-                case 2:     
-                    my.vfx.run.stop(); // turn off running VFX
-
-                    if(cursors.up.isDown){
-                        my.sprite.player.body.setVelocityY(-this.acceleration/1.5);
-                        
-                        // SFX + VFX
-                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(200).play(); }
-                        my.vfx.swim.startFollow(my.sprite.player, 100, 120, false).start();
-
-                    } else if(cursors.down.isDown){
-                        my.sprite.player.body.setVelocityY(this.acceleration/1.5);
-
-                        // SFX + VFX
-                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(-200).play(); }
-                        my.vfx.run.startFollow(my.sprite.player, 100, 120, false).start();
-
-                    } else {
-                        my.sprite.player.body.setVelocityY(this.GRAVITY / 200);
-
-                        my.vfx.swim.stop(); // stop VFX
-                    }
-                    break;
-                /* WATERFALL */
-                case 1:
-                    my.vfx.run.stop(); // turn off running VFX
-
-                    if(cursors.up.isDown){
-                        my.sprite.player.body.setVelocityY(-this.acceleration);
-                        
-                        // SFX + VFX
-                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(200).play(); }
-                        my.vfx.run.startFollow(my.sprite.player, 100, 120, false).start();
-
-                    } else if(cursors.down.isDown){
-                        my.sprite.player.body.setVelocityY(this.acceleration);
-
-                        if(!this.sfx_swim.isPlaying){ this.sfx_swim.setDetune(-200).play(); }
-                        my.vfx.run.startFollow(my.sprite.player, 100, 120, false);
-                        my.vfx.swim.start();
-                    } else {
-                        my.sprite.player.body.setAccelerationY(0);
-                        my.sprite.player.body.setVelocityY(0);
-                        my.vfx.swim.stop();
-
-                    }
-                    break;
-                case 0:     // on land or clouds
-                    my.vfx.swim.stop();
-                    if( my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
-                            my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);     
-                            this.sfx_jump.play();
-                        }    
-                    break;
-                case -2:    // ladder
-                    my.vfx.run.stop();
-                    my.vfx.swim.stop();
-                    if(cursors.up.isDown){
-                        my.sprite.player.body.setVelocityY(-this.ACCELERATION/2);
-                    } else if(cursors.down.isDown){
-                        my.sprite.player.body.setVelocityY(this.ACCELERATION/2);
-                    } else {
-                        my.sprite.player.body.setAccelerationY(0);
-                        my.sprite.player.body.setVelocityY(0);
-                    }
-                    break;
-                }
-
-
-            // JUMPTHRU PLATFORM STUFF
-            this.wait--;
-            if(cursors.down.isDown && this.onJumpThru == true){
-                this.lastTile = this.currTile;
-                this.currTile.collideUp = false;
-                this.wait = 30;
-            }
-            if(this.lastTile && this.wait < 0){ 
-                this.lastTile.collideUp = true; 
-            }
         }
 
     }
 
     enviroAnims(active){
         if(active){    
-            // UFO
+            // UFO moves back and forth at top of screen
             let w = game.config.width;
             if(this.UFOlayer.x <= w/2 + 300 && this.UFOright == 1){
                 this.UFOlayer.x += this.UFOspeed;
@@ -878,8 +879,9 @@ class Platformer extends Phaser.Scene {
         // make stuff invisible
         this.bgStuff.setAlpha(0);
         for(let layer of this.invisObjects_atWin){ 
-            for(let i in layer) layer[i].x = game.config.width*1.5; // puts layer offscreen
+            for(let i in layer) layer[i].x = game.config.width*1.5; // puts object layers offscreen
         }
+
         // put UFO in middle of screen
         this.UFOlayer.x = game.config.width/4 - 270;
         for(let i in this.emptyHearts){ 
@@ -889,18 +891,21 @@ class Platformer extends Phaser.Scene {
         this.friend.setFlip(true, false);
 
         // put "player" in UFO
+        //   stop following player sprite, put offscreen, show player husk (placed in UFO in create())
         this.cameras.main.stopFollow(my.sprite.player);
         my.sprite.player.x = -1080; my.sprite.player.y = 1080*5;
         this.playerHusk.setVisible(true);
 
         // hide game UI
+        this.rect_bottom.setVisible(false);
+        this.rect_topLeft.setVisible(false);
         this.keysTxt.visible = false;
         this.shroombTxt.visible = false;
         this.controlsTxt.visible = false;
         this.teleportTxt.visible = false;
 
         // show win UI
-        this.rect.setVisible(true);
+        this.rect_win.setVisible(true);
         this.winTxt.setVisible(true); 
         this.playagainTxt.setVisible(true); 
 
@@ -910,41 +915,54 @@ class Platformer extends Phaser.Scene {
 /////////////////////////////////////////////////////////
 
     update() {
-        // NOTE: tileType (2, 1, 0, -1) corresponds to the material that a tile is made of
-        //      > can be waterbody, waterfall, land, or ladder. 
+        // NOTE: tileType (2, 1, 0.5, 0, -2) corresponds to the material that a tile is made of
+        //      > can be waterbody, waterfall, clouds, land, or ladder. 
         //      > acceleration and gravity are altered by this variable, as is y-axis movement
+        //      > use Math.floor to give clouds the same accelration and gravity as land
         this.acceleration = (
             this.ACCELERATION - 
             (this.ACCELERATION * (Math.abs(Math.floor(this.tileType)) / 3)));
         this.physics.world.gravity.y = (
             this.GRAVITY - 
             (this.GRAVITY * (Math.abs(Math.floor(this.tileType)) / 2)));
-        
-        if(this.tileType == 0.5){ this.drag = this.acceleration - 50; }
+
+        // make clouds icy
+        if(this.tileType == 0.5){ this.drag = this.acceleration - 100; }
         else{ this.drag = this.DRAG; }
 
-        // NOTE: win state achieve when heartsFilled > 2
+        // NOTE: win state achieved when heartsFilled == 3 !!!
+
         // handles x-axis movement (left/right cursor input)
-        this.xMovement(this.heartsFilled < 3);
+        this.xMovement(!this.won);
         // handles y-axis movement (up/down cursor input) with respect to tileType
-        this.yMovement(this.heartsFilled < 3);  
+        this.yMovement(!this.won);  
          
         // animates UFO, friend, and hearts (aka whatever scene anims I couldnt do in tiled)
-        this.enviroAnims(this.heartsFilled < 3); 
+        this.enviroAnims(!this.won); 
         
         // custom collsion check for emptyheart objects
-        // only runs when player has a heart
+        //     > only runs when player has a heart
         if(this.heartCount > 0){ this.emptyHeartsCollider(my.sprite.player); } 
         
         // update UI
         this.keysTxt.setText(`KEYS:${this.keyCount}`);
         this.shroombTxt.setText(`SHROOMBUSTERS:${this.shroombustCount}`);
-        if(this.currCheckpoint.x > 0){ this.teleportTxt.setVisible(true); }
+        if(this.currCheckpoint.x > 0 && !this.won){ this.teleportTxt.setVisible(true); }
 
-        // win state
+        //////////////////////////* WIN STATE *//////////////////////////
         if(this.heartsFilled > 2 && this.won == false){ this.win(); }
         if(this.won == true){ 
-            // play again control
+            // ascend UFO to offscreen
+            if(this.UFOlayer.y > -540){
+                this.UFOlayer.y -= this.UFOspeed/2;
+                this.friend.y -= this.UFOspeed/2;
+                this.playerHusk.y -= this.UFOspeed/2;
+                for(let i in this.emptyHearts){ 
+                    this.emptyHearts[i].y -= this.UFOspeed/2; 
+                }
+            } else { for(let sfx of this.sfx_ALL){ sfx.stop(); } }
+
+            // play again controls
             if (Phaser.Input.Keyboard.JustDown(this.enter)) {
                 // stop all sounds
                 for(let sfx of this.sfx_ALL){ sfx.stop(); }
@@ -952,15 +970,7 @@ class Platformer extends Phaser.Scene {
                 // restart this scene
                 this.scene.start("platformerScene");
             }
-            if(this.UFOlayer.y > -1080){
-                // ascend UFO to offscreen
-                this.UFOlayer.y -= this.UFOspeed/2;
-                this.friend.y -= this.UFOspeed/2;
-                this.playerHusk.y -= this.UFOspeed/2;
-                for(let i in this.emptyHearts){ 
-                    this.emptyHearts[i].y -= this.UFOspeed/2; 
-                }
-            }
         }
-    }
+        /////////////////////////////////////////////////////////////////
+    } // end of update()
 }
