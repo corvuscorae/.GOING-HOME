@@ -294,6 +294,10 @@ class Platformer extends Phaser.Scene {
 
         this.playagainTxt = this.add.bitmapText(540, 540+60, "pixel_font", 
             `press enter to play again`, 40).setOrigin(0.5).setScrollFactor(0).setVisible(false);
+
+                    // update HTML description
+        document.getElementById('description').innerHTML = 
+        "<h2> > GOING HOME</h2><br>a game about climbing, climbing, climbing ever homeward";
     }
     // CREATE TILE LAYERS //
     addLayer(layerName, tilesets, scroll){
