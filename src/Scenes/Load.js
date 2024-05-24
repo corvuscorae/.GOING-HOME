@@ -4,16 +4,6 @@ class Load extends Phaser.Scene {
     }
 
     preload() {
-        // animated tiles plugin
-        // https://github.com/jonit-dev/phaser-animated-tiles
-        this.load.scenePlugin('AnimatedTiles', './lib/AnimatedTiles.js', 'animatedTiles', 'animatedTiles')
-        //this.load.scenePlugin({
-        //    key: 'AnimatedTiles', 
-        //    url: '/lib/AnimatedTiles.js', 
-        //    sceneKey: 'animatedTiles' 
-        //    //'animatedTiles'
-        //});
-
         this.load.setPath("./assets/");
 
         // Load characters spritesheet//*****************************/
@@ -24,6 +14,7 @@ class Load extends Phaser.Scene {
         this.load.image("rock", "packed_rock.png");             
         this.load.image("platforms", "packed_tilemap.png");            
         this.load.image("backgrounds", "tilemap-backgrounds.png");            
+        this.load.image("mountains", "mountains.png");            
         this.load.image("industry", "packed_industrial.png");            
         this.load.tilemapTiledJSON("map-level-1", "map-level-1.tmj");   // Tilemap in JSON
 
@@ -34,6 +25,26 @@ class Load extends Phaser.Scene {
         });
         
         this.load.multiatlas("kenny-particles", "kenny-particles.json");
+    
+        // audio
+        this.load.audio("bg_music", "meepmoop_mixdown.ogg");     
+        this.load.audio("sfx_walk", "footstep_carpet_003.ogg");     
+        this.load.audio("sfx_jump", "pepSound3.ogg");          
+        this.load.audio("sfx_superjump", "phaserUp1.ogg");          
+        this.load.audio("sfx_land", "impactSoft_heavy_003.ogg");   
+        this.load.audio("sfx_collectA", "powerUp6.ogg");
+        this.load.audio("sfx_collectB", "powerUp4.ogg");
+        this.load.audio("sfx_openChest", "powerUp9.ogg");
+        this.load.audio("sfx_breakShroom", "footstep_snow_003.ogg");
+        this.load.audio("sfx_swim", "lowRandom.ogg");             
+        this.load.audio("sfx_checkpointUnlock", "pepSound2.ogg");          
+        this.load.audio("sfx_checkpointWarp", "pepSound1.ogg");          
+        this.load.audio("sfx_getHeart", "zapThreeToneUp.ogg");          
+        this.load.audio("sfx_putHeart1", "computerNoise_000.ogg");          
+        this.load.audio("sfx_putHeart2", "computerNoise_001.ogg");          
+        this.load.audio("sfx_putHeart3", "computerNoise_002.ogg");          
+
+        this.load.bitmapFont("pixel_font", "pixel.png", "pixel.xml");
     }
 
     create() {
@@ -95,10 +106,19 @@ class Load extends Phaser.Scene {
             key: 'putHeart',
             defaultTextureKey: "tilemap_sheet",
             frames: [ 
-                {frame: 46}, 
-                {frame: 44} ],
-            frameRate: 15,
-            repeat: 0
+                {frame: 44},
+                {frame: 64},
+                {frame: 66},
+                {frame: 65},
+                {frame: 65},
+                {frame: 65},
+                {frame: 65},
+                {frame: 66},
+                {frame: 64},
+                {frame: 44},
+             ],
+            frameRate: 16,
+            repeat: -1
         });
 
         // key sway
@@ -112,16 +132,18 @@ class Load extends Phaser.Scene {
             repeat: -1
         });
 
-        // waves
+        // shroombust spin
         this.anims.create({
-            key: 'waves',
+            key: 'shrmSpin',
             defaultTextureKey: "tilemap_sheet",
             frames: [ 
-                {frame: 33}, 
-                {frame: 53} ],
-            frameRate: 5,
+                {frame: 67}, 
+                {frame: 68} ],
+            frameRate: 7,
             repeat: -1
         });
+
+        
 
          // ...and pass to the next Scene
          
