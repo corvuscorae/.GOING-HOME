@@ -1,3 +1,5 @@
+// PLEASE SEE README FOR ASSETS CREDITS
+
 // debug with extreme prejudice
 "use strict"
 
