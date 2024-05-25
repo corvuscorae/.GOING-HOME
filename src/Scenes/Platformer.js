@@ -234,6 +234,15 @@ class Platformer extends Phaser.Scene {
         });
         my.vfx.run.stop();
 
+        my.vfx.jump = this.add.particles(-100,-100, "kenny-particles", {
+            frame: ['symbol_02.png'],
+            scale: {start: 0.1, end: 0.2},
+            alpha: {start: 1, end: 0},
+            lifespan: 500,
+            duration: 0.8
+        });
+        my.vfx.jump.stop();
+
         // underwater
         my.vfx.swim = this.add.particles(-100,-100, "kenny-particles", {
             frame: ['circle_01.png', 'circle_02.png', 'circle_03.png', 'circle_04.png'],
@@ -786,6 +795,7 @@ class Platformer extends Phaser.Scene {
                     my.vfx.swim.stop(); // turn off swimming VFX
                     if( my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
                             my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);     
+                            my.vfx.jump.startFollow(my.sprite.player, 100, 120, false).start();
                             this.sfx_jump.play();
                         }    
                     break;
