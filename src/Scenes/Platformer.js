@@ -18,7 +18,6 @@ class Platformer extends Phaser.Scene {
         this.JUMP_VELOCITY = -600;
         this.SCALE = 2.0;
 
-        this.debug = true;
         this.tileType = 0;
         this.onJumpThru = false;
         this.currTile = null;
@@ -32,8 +31,6 @@ class Platformer extends Phaser.Scene {
         this.UFOspeed = 2;
         this.UFOright = -1;
 
-        this.keyUp = 1;
-
         this.spawnX = game.config.width/10;
         this.spawnY = game.config.height*4 - 100;
 
@@ -41,13 +38,8 @@ class Platformer extends Phaser.Scene {
 
         this.won = false;
 
-        this.squash = 100;
-
         // audio stuff
         this.falling = false;
-        this.onWater = false;
-        this.xMoving = false;
-        this.waterLanding = false;
         this.volume_SFX = 0.3;
         this.volume_BGmusic = 0.6;
         
